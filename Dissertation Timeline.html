@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dissertation timeline</title>
+<script>try{if(matchMedia('(prefers-color-scheme: dark)').matches)document.documentElement.classList.add('dark');}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* bar fills — fixed across themes (carried from the sheep timeline) */
+  --surgery:#F0997B; --ct:#85B7EB; --eos:#ED93B1; --histo:#7F77DD;
+  --span:#85B7EB; --inprog:#F0997B; --planned:#AFA9EC; --planned-soft:#CECBF6;
+  --writing:#EF9F27; --done:#97C459; --defense:#B7B3AA; --defense-dot:#C2683D;
+
+  /* surfaces / ink — theme-aware */
+  --paper:#FAF8F2; --surface:#FFFFFF; --surface-2:#F2EFE7;
+  --ink:#211F1A; --ink-soft:#6F6B61; --ink-faint:#9A958A;
+  --hairline:rgba(33,31,26,.12); --hairline-soft:rgba(33,31,26,.06);
+  --sline:rgba(33,31,26,.20); --today:#A29C90;
+
+  /* chip text — theme-aware for contrast */
+  --chip-blue:#2E6FA8; --chip-coral:#B85C3A; --chip-amber:#A86A12;
+
+  --font:'Hanken Grotesk',system-ui,-apple-system,sans-serif;
+  --display:'Fraunces',Georgia,serif;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,monospace;
+
+  --label-w:clamp(150px, 20vw, 244px); --dlabel-w:120px;
+}
+html.dark{
+  --paper:#16140F; --surface:#1E1C16; --surface-2:#26241D;
+  --ink:#ECE8DE; --ink-soft:#9A958A; --ink-faint:#7A766C;
+  --hairline:rgba(236,232,222,.14); --hairline-soft:rgba(236,232,222,.07);
+  --sline:rgba(236,232,222,.22); --today:#B7B1A5; --defense-dot:#E0875A;
+  --chip-blue:#85B7EB; --chip-coral:#F0997B; --chip-amber:#EFB14A;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font); background:var(--paper); color:var(--ink);
+  -webkit-font-smoothing:antialiased; min-height:100vh; line-height:1.55; position:relative;
+}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.025;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+
+.wrap{max-width:1280px; margin:0 auto; padding:48px 28px 72px; position:relative; z-index:1}
+@media(max-width:640px){.wrap{padding:30px 14px 52px}}
+.wrap>*{animation:rise .5s cubic-bezier(.22,.61,.36,1) backwards}
+.wrap>*:nth-child(2){animation-delay:.08s}
+.wrap>*:nth-child(3){animation-delay:.14s}
+@keyframes rise{from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none}}
+@media(prefers-reduced-motion:reduce){.wrap>*{animation:none} .chev{transition:none}}
+
+/* header */
+.page-head{margin-bottom:28px}
+.head-top{display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:14px}
+.eyebrow{font:500 11px/1.4 var(--mono); letter-spacing:.13em; text-transform:uppercase; color:var(--ink-faint)}
+.page-head h1{font:500 clamp(28px,5vw,38px)/1.04 var(--display); letter-spacing:-.015em; margin-bottom:10px}
+.page-head .sub{font-size:15px; color:var(--ink-soft); max-width:60ch; line-height:1.6}
+.theme-btn{
+  display:inline-flex; align-items:center; gap:7px; padding:7px 12px; border:1px solid var(--hairline);
+  border-radius:9px; background:var(--surface); color:var(--ink-soft); font:600 12px var(--font);
+  cursor:pointer; transition:background .15s, color .15s; white-space:nowrap;
+}
+.theme-btn:hover{background:var(--surface-2); color:var(--ink)}
+.theme-btn svg{width:15px; height:15px}
+
+/* card */
+.card{background:var(--surface); border:1px solid var(--hairline); border-radius:16px; padding:26px 26px 22px}
+@media(max-width:640px){.card{padding:18px 14px 16px; border-radius:12px}}
+.chart-scroll{overflow-x:visible}
+.gantt{min-width:0}
+
+/* global axis header */
+.axis-head{display:grid; grid-template-columns:var(--label-w) 1fr; gap:14px; align-items:center; margin-bottom:2px}
+.cap{font:500 10.5px/1 var(--mono); letter-spacing:.12em; text-transform:uppercase; color:var(--ink-faint)}
+.track{position:relative}
+.axis-head .track{height:16px}
+.tick{position:absolute; top:0; font:500 10.5px/1 var(--mono); color:var(--ink-faint); transform:translateX(-50%); white-space:nowrap}
+
+/* aim rows */
+details.aim{border-top:1px solid var(--hairline)}
+details.aim:last-of-type{border-bottom:1px solid var(--hairline)}
+summary{list-style:none; cursor:pointer; padding:14px 0}
+summary::-webkit-details-marker{display:none}
+summary:focus-visible{outline:2px solid var(--span); outline-offset:3px; border-radius:6px}
+.row{display:grid; grid-template-columns:var(--label-w) 1fr; gap:14px; align-items:center}
+.row-label{display:flex; align-items:center; flex-wrap:wrap; gap:7px 8px; font-size:13.5px; font-weight:500; color:var(--ink); min-width:0; line-height:1.3}
+.row-label .num{color:var(--ink-soft); font-weight:600}
+.chev{flex-shrink:0; color:var(--ink-faint); display:inline-flex; transition:transform .18s ease}
+details[open]>summary .chev{transform:rotate(90deg)}
+.aim .track{height:18px}
+.bar{position:absolute; top:3px; height:12px; border-radius:6px}
+.today{position:absolute; top:-3px; bottom:-3px; width:0; border-left:1.5px dashed var(--today)}
+
+/* chips */
+.chip{
+  display:inline-flex; align-items:center; gap:6px; padding:2px 9px; border-radius:999px;
+  font:600 11px var(--font); white-space:nowrap; flex-shrink:0;
+  background:color-mix(in srgb, currentColor 13%, transparent);
+}
+.chip .d{width:6px; height:6px; border-radius:50%; background:currentColor}
+.c-blue{color:var(--chip-blue)} .c-coral{color:var(--chip-coral)} .c-amber{color:var(--chip-amber)}
+
+/* detail (drop-down) */
+.detail{padding:2px 0 18px 0}
+.detail .note{font-size:12.5px; color:var(--ink-faint); margin-bottom:12px; padding-left:21px}
+.dgrid{display:grid; grid-template-columns:var(--label-w) 1fr; gap:5px 14px; align-items:center}
+.dgrid .track{height:13px}
+.dtick{position:absolute; top:0; font:500 10px/1 var(--mono); color:var(--ink-faint); transform:translateX(-50%)}
+.dlabel{font-size:12px; color:var(--ink-soft); padding-left:21px}
+.drow{height:21px; position:relative}
+.sline{position:absolute; top:9px; height:2px; background:var(--sline)}
+.dot{position:absolute; top:5px; width:10px; height:10px; border-radius:50%; transform:translateX(-50%); box-shadow:0 0 0 2px var(--surface)}
+.pbar{position:absolute; top:4px; height:13px; border-radius:4px}
+.mrow{height:32px}
+.mrow .dot{top:17px}
+.mrow .sline{top:21px}
+.mlab{position:absolute; top:1px; transform:translateX(-50%); font:500 9.5px/1.1 var(--mono); color:var(--ink-soft); white-space:nowrap}
+
+/* keys + legend */
+.key{display:flex; flex-wrap:wrap; gap:14px; font-size:11px; color:var(--ink-soft); margin-top:12px}
+.kd{display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:5px; vertical-align:-1px}
+.kb{display:inline-block; width:15px; height:9px; border-radius:3px; margin-right:5px; vertical-align:0}
+.kln{display:inline-block; width:0; height:11px; border-left:1.5px dashed var(--today); margin-right:7px; vertical-align:-1px}
+.legend{display:flex; flex-wrap:wrap; gap:16px; font-size:11.5px; color:var(--ink-soft); margin-top:20px; padding-top:16px; border-top:1px solid var(--hairline-soft)}
+.legend span{display:inline-flex; align-items:center}
+.foot{font-size:11.5px; color:var(--ink-faint); margin-top:14px; text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page-head">
+    <div class="head-top">
+      <button class="theme-btn" id="theme" aria-label="Toggle colour theme"></button>
+    </div>
+    <h1>Dissertation timeline</h1>
+  </header>
+
+  <div class="card">
+    <div class="chart-scroll"><div class="gantt" id="gantt"></div></div>
+  </div>
+
+  <p class="foot">Planning targets, not fixed deadlines. The dashed line marks today.</p>
+</div>
+
+<script>
+const $ = (s, el=document) => el.querySelector(s);
+function d(y, m, day){ return new Date(y, m-1, day); }
+function pct(date, a, b){ return Math.max(0, Math.min(100, ((date - a) / (b - a)) * 100)); }
+function fmtDate(dt){ return dt.toLocaleString('en-US', {month:'short', day:'numeric'}); }
+
+const GLOBAL = { start: d(2026,6,1), end: d(2027,4,1) };
+const TODAY  = new Date();
+
+const aims = [
+  {
+    num:'Aim 1', title:'Completed study', chip:{label:'Paper in prep', cls:'c-blue'}, open:true,
+    span:[{ start:d(2026,6,1), end:d(2026,6,30), color:'var(--span)' }],
+    note:'Analysis complete — submissions remaining.',
+    detail:{ type:'milestones', rows:[
+      { label:'bioRxiv', date:d(2026,6,15), color:'var(--span)' },
+      { label:'JNE',      date:d(2026,6,30), color:'var(--span)' },
+      { label:'Accepted',      date:d(2026,12,30), color:'var(--span)' },
+    ]}
+  },
+  {
+    num:'Aim 2', title:'Ovine study', chip:{label:'In progress', cls:'c-coral'}, open:true,
+    span:[{ start:d(2026,6,1), end:d(2026,12,30), color:'var(--span)' }],
+    detail:{ type:'subjects',
+      subjects:[
+        { name:'Apple',    surgery:d(2026,6,1),  ct1:d(2026,6,16), ct2:d(2026,6,30), terminal:d(2026,7,29), histo:d(2026,8,26) },
+        { name:'Bacon',    surgery:d(2026,6,24), ct1:d(2026,7,7),  ct2:d(2026,7,21), terminal:d(2026,8,4),  histo:d(2026,9,1) },
+        { name:'Cabbage',  surgery:d(2026,8,17), ct1:d(2026,9,2),  ct2:d(2026,9,17), terminal:d(2026,9,29), histo:d(2026,10,13) },
+        { name:'Donut', surgery:d(2026,8,31), ct1:d(2026,9,15), ct2:d(2026,9,29), terminal:d(2026,10,12), histo:d(2026,10,26) },
+      ],
+      writing:{ label:'Paper draft', start:d(2026,8,18), end:d(2026,11,30) }
+    }
+  },
+  {
+    num:'Aim 3', title:'EEG threshold detection', chip:{label:'In progress', cls:'c-coral'}, open:true,
+    span:[{ start:d(2026,6,1), end:d(2026,12,30), color:'var(--span)' }],
+    note:'Pipeline & classical decoding already complete.',
+    detail:{ type:'phases', phases:[
+      { label:'Rig troubleshooting', start:d(2026,7,20),  end:d(2026,8,20),  color:'var(--inprog)' },
+      { label:'Data collection',     start:d(2026,8,20),  end:d(2026,11,30), color:'var(--eos)' },
+      { label:'Analysis (parallel)', start:d(2026,9,1),  end:d(2026,10,1), color:'var(--planned-soft)' },
+      { label:'Major analysis & ML', start:d(2026,10,1), end:d(2026,12,30),  color:'var(--planned)' },
+      { label:'Paper draft',         start:d(2026,10,15), end:d(2026,12,30),  color:'var(--writing)' },
+    ]}
+  },
+  {
+    num:'', title:'Thesis & defense', chip:{label:'Write-up', cls:'c-amber'}, open:true,
+    span:[
+      { start:d(2026,11,15), end:d(2027,2,15), color:'var(--writing)' },
+      { start:d(2027,2,15),  end:d(2027,3,1),  color:'var(--defense)' },
+      { start:d(2027,3,1),  end:d(2027,3,15),  color:'var(--writing)' },
+    ],
+    markers:[
+  { date:d(2026,11,15), color:'var(--defense-dot)' },
+  { date:d(2027,3,1),   color:'var(--defense-dot)' },
+],
+    detail:{ type:'phases', phases:[
+      { label:'Committee Meeting',         date:d(2026,11,15),    color:'var(--defense-dot)' },
+      { label:'Thesis write-up', start:d(2026,11,15), end:d(2027,2,15), color:'var(--writing)' },
+      { label:'Committee Review',       start:d(2027,2,15),  end:d(2027,3,1),  color:'var(--defense)' },
+      { label:'Defense',         date:d(2027,3,1),    color:'var(--defense-dot)' },
+      { label:'Revisions',       start:d(2027,3,1),  end:d(2027,3,15),  color:'var(--writing)' },
+    ]}
+  },
+];
+
+const CHEV = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
+const SUN  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+
+function monthTicks(start, end, everyN){
+  const out = [];
+  let cur = new Date(start.getFullYear(), start.getMonth(), 1);
+  if (cur < start) cur = new Date(cur.getFullYear(), cur.getMonth()+1, 1);
+  let i = 0;
+  while (cur <= end){
+    if (i % everyN === 0) out.push({ left: pct(cur, start, end), label: cur.toLocaleString('en-US', {month:'short'}) });
+    cur = new Date(cur.getFullYear(), cur.getMonth()+1, 1);
+    i++;
+  }
+  return out;
+}
+
+function spanBars(spans){
+  return spans.map(s => {
+    const l = pct(s.start, GLOBAL.start, GLOBAL.end);
+    const w = pct(s.end, GLOBAL.start, GLOBAL.end) - l;
+    return `<span class="bar" style="left:${l}%;width:${w}%;background:${s.color}"></span>`;
+  }).join('');
+}
+function todayLine(){
+  const l = pct(TODAY, GLOBAL.start, GLOBAL.end);
+  if (l <= 0 || l >= 100) return '';
+  return `<span class="today" style="left:${l}%"></span>`;
+}
+function detailAxis(){
+  const ticks = monthTicks(GLOBAL.start, GLOBAL.end, 1)
+    .map(t => `<span class="dtick" style="left:${t.left}%">${t.label}</span>`).join('');
+  return `<div></div><div class="track">${ticks}</div>`;
+}
+function pbar(start, end, axis, color){
+  const l = pct(start, axis.start, axis.end);
+  const w = pct(end, axis.start, axis.end) - l;
+  return `<span class="pbar" style="left:${l}%;width:${w}%;background:${color}"></span>`;
+}
+function detailRows(a){
+  const ax = GLOBAL, dt = a.detail;
+  if (dt.type === 'milestones'){
+  const xs = dt.rows.map(r => pct(r.date, ax.start, ax.end));
+  const line = `<span class="sline" style="left:${xs[0]}%;width:${xs[xs.length-1]-xs[0]}%"></span>`;
+  const dots = dt.rows.map((r, i) =>
+    `<span class="mlab" style="left:${xs[i]}%">${r.label}</span><span class="dot" style="left:${xs[i]}%;background:${r.color}"></span>`
+  ).join('');
+  return `<div class="dlabel">${dt.label || 'Publication'}</div><div class="drow mrow">${line}${dots}</div>`;
+}
+  if (dt.type === 'subjects'){
+    const dotEvents = [['surgery','var(--surgery)'],['ct1','var(--ct)'],['ct2','var(--ct)'],['terminal','var(--eos)']];
+    let rows = dt.subjects.map(s => {
+      const first = pct(s.surgery, ax.start, ax.end);
+      const termP = pct(s.terminal, ax.start, ax.end);
+      const histP = pct(s.histo, ax.start, ax.end);
+      const line = `<span class="sline" style="left:${first}%;width:${termP-first}%"></span>`;
+      const histoBar = `<span class="pbar" style="left:${termP}%;width:${histP-termP}%;background:var(--histo)"></span>`;
+      const dots = dotEvents.map(([k,c]) => `<span class="dot" style="left:${pct(s[k], ax.start, ax.end)}%;background:${c}"></span>`).join('');
+      return `<div class="dlabel">${s.name}</div><div class="drow">${line}${histoBar}${dots}</div>`;
+    }).join('');
+    const w = dt.writing;
+    rows += `<div class="dlabel">${w.label}</div><div class="drow">${pbar(w.start, w.end, ax, 'var(--writing)')}</div>`;
+    return rows;
+  }
+  if (dt.type === 'phases'){
+    return dt.phases.map(p => {
+      const inner = p.date
+        ? `<span class="dot" style="left:${pct(p.date, ax.start, ax.end)}%;background:${p.color}"></span>`
+        : pbar(p.start, p.end, ax, p.color);
+      return `<div class="dlabel">${p.label}</div><div class="drow">${inner}</div>`;
+    }).join('');
+  }
+  return '';
+}
+function ovineKey(){
+  return `<div class="key">
+    <span><i class="kd" style="background:var(--surgery)"></i>Surgery</span>
+    <span><i class="kd" style="background:var(--ct)"></i>CT / data</span>
+    <span><i class="kd" style="background:var(--eos)"></i>Terminal</span>
+    <span><i class="kb" style="background:var(--histo)"></i>Histology + analysis</span>
+    <span><i class="kb" style="background:var(--writing)"></i>Writing</span>
+  </div>`;
+}
+function aimHTML(a){
+  const numHTML = a.num ? `<span class="num">${a.num}</span>&nbsp;·&nbsp;` : '';
+  const note = a.note ? `<div class="note">${a.note}</div>` : '';
+  const key = a.detail.type === 'subjects' ? ovineKey() : '';
+  return `<details class="aim"${a.open ? ' open' : ''}>
+    <summary>
+      <div class="row">
+        <div class="row-label"><span class="chev">${CHEV}</span>${numHTML}${a.title}<span class="chip ${a.chip.cls}"><span class="d"></span>${a.chip.label}</span></div>
+        <div class="track">${spanBars(a.span)}${(a.markers || []).map(m => `<span class="dot" style="left:${pct(m.date, GLOBAL.start, GLOBAL.end)}%;background:${m.color}"></span>`).join('')}${todayLine()}</div>
+      </div>
+    </summary>
+    <div class="detail">${note}<div class="dgrid">${detailAxis()}${detailRows(a)}</div>${key}</div>
+  </details>`;
+}
+
+const headTicks = monthTicks(GLOBAL.start, GLOBAL.end, 1)
+  .map(t => `<span class="tick" style="left:${t.left}%">${t.label}</span>`).join('');
+const axisHead = `<div class="axis-head"><div class="cap"></div><div class="track">${headTicks}</div></div>`;
+
+const tp = pct(TODAY, GLOBAL.start, GLOBAL.end);
+const todayLabel = (tp > 0 && tp < 100) ? ' · ' + fmtDate(TODAY) : '';
+const legend = `<div class="legend">
+  <span><i class="kb" style="background:var(--span)"></i>Aim span</span>
+  <span><i class="kb" style="background:var(--inprog)"></i>In progress</span>
+  <span><i class="kb" style="background:var(--planned)"></i>Planned</span>
+  <span><i class="kb" style="background:var(--writing)"></i>Writing</span>
+  <span><i class="kln"></i>Today${todayLabel}</span>
+</div>`;
+
+$('#gantt').innerHTML = axisHead + aims.map(aimHTML).join('') + legend;
+
+const btn = $('#theme');
+function syncTheme(){
+  const dark = document.documentElement.classList.contains('dark');
+  btn.innerHTML = (dark ? SUN : MOON) + `<span>${dark ? 'Light' : 'Dark'}</span>`;
+}
+btn.addEventListener('click', () => {
+  document.documentElement.classList.toggle('dark');
+  syncTheme();
+});
+syncTheme();
+</script>
+</body>
+</html>
